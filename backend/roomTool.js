@@ -1,6 +1,6 @@
-const WebSocket = require('ws');
-const fs = require('fs');
-const fetch = require('node-fetch')
+import WebSocket from 'ws';
+import fs from 'fs';
+import fetch from 'node-fetch'
 
 async function getMediaKey(roomId) {
     let variables = {
@@ -28,7 +28,7 @@ async function getMediaKey(roomId) {
         "responsive_web_text_conversations_enabled": false,
         "responsive_web_enhance_cards_enabled": true
     };
-    let request = await fetch("https://twitter.com/i/api/graphql/" + 'gMM94mZD6vm7pgAmurx0gQ' + "/AudioSpaceById?variables=" + encodeURIComponent(JSON.stringify(variables))+"&features="+ encodeURIComponent(JSON.stringify(features)), {
+    let request = await fetch("https://twitter.com/i/api/graphql/" + 'gMM94mZD6vm7pgAmurx0gQ' + "/AudioSpaceById?variables=" + encodeURIComponent(JSON.stringify(variables)) + "&features=" + encodeURIComponent(JSON.stringify(features)), {
         "headers": {
 
             "authorization": "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA",
@@ -36,7 +36,7 @@ async function getMediaKey(roomId) {
             "content-type": "application/json",
 
 
-            "x-guest-token": "1570786534533521410",
+            "x-guest-token": "1575148521354846212",
             "x-twitter-active-user": "yes",
             "x-twitter-client-language": "pl"
 
@@ -53,7 +53,7 @@ async function liveVideoStreamStatus(mediaKey = '28_156745544433103257') {
     return await (await fetch("https://twitter.com/i/api/1.1/live_video_stream/status/" + mediaKey, {
         "headers": {
             "authorization": "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA",
-            "x-guest-token": "1567457075399196672",
+            "x-guest-token": "1575148521354846212",
         },
 
     })).json()
@@ -76,11 +76,20 @@ async function accessChatPublic(mediaKey) {
     return await request.json()
 }
 
-async function watchRoom(roomId) {
+export async function watchRoom(roomId) {
     let mediaKey = await getMediaKey(roomId);
-    let file = fs.openSync('log_' + roomId + '_' + (+new Date()) + '.json', 'w+');
-    fs.writeSync(file, '[{}]');
+    let stats;
+    try {
+        stats = fs.statSync("'data/' + roomId + '.json'")
+    } catch (ex) {
+    }
+    let file = fs.openSync('data/' + roomId + '.json', 'w+');
     let position = 3;
+    if (stats) {
+        position = stats.size - 1;
+    } else {
+        fs.writeSync(file, '[{}]');
+    }
     var w = new WebSocket('wss://prod-chatman-ancillary-eu-central-1.pscp.tv/chatapi/v1/chatnow');
     w.onopen = async () => {
         let access_token = (await accessChatPublic(mediaKey)).access_token
@@ -114,4 +123,24 @@ async function watchRoom(roomId) {
     }
 }
 
-watchRoom(process.argv[2])
+function getRoomPeople(raw) {
+    let ret = {};
+    for (const x of raw) {
+        if (x.sender) {
+            ret[x.sender.user_id] = x.sender;
+        }
+    }
+    return ret;
+}
+
+export async function getRoomData(roomId) {
+    try {
+        let file = await fs.promises.open('data/' + roomId + '.json', 'r');
+        let rawBuffer = await fs.promises.readFile(file);
+        let raw = JSON.parse(rawBuffer.toString('utf8'))
+        let roomPeople = getRoomPeople(raw)
+        return {raw, roomPeople}
+    }catch (e) {
+        return {raw:[], roomPeople:[]}
+    }
+}
