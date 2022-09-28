@@ -17,7 +17,7 @@ app.get('*', async (req, res) => {
         let [_, roomId] = req.path.split('/');
         if (!watchingRooms.has(roomId)) {
             watchingRooms.add(roomId);
-            watchRoom(roomId);
+            watchRoom(roomId).catch(ex=>null);
         }
         res.send(await getRoomData(roomId));
     } catch (e) {
