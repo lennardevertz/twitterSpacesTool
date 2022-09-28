@@ -1,0 +1,13 @@
+{
+  "name": "twitterSpaces",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "node script.js 1yoKMZvWlqRGQ"
+  },
+  "dependencies": {
+    "ws": "^8.8.1",
+    "node-fetch": "^2.6.7"
+  }
+}
