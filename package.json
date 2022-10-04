@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "node roomTool.js 1lPKqBapAvmGb"
+    "start": "node init.js"
   },
   "dependencies": {
     "ws": "^8.8.1",
