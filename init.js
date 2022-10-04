@@ -14,7 +14,8 @@ let watchingRooms = new Set();
 app.get('*', async (req, res) => {
     console.log("Opened app")
     try {
-        let [_, roomId] = req.path.split('/');
+        let params = req.path.split('/');
+        let roomId = params[params.length - 1]
         if (!watchingRooms.has(roomId)) {
             watchingRooms.add(roomId);
             watchRoom(roomId).catch(ex=>null);
