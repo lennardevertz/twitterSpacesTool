@@ -1,7 +1,11 @@
 import express from 'express';
 import {getRoomData, watchRoom} from "./roomTool.js";
 
+const PORT = process.env.PORT || '3000'
+
 const app = express()
+
+app.set("port", PORT)
 
 app.use(function (req, res, next) {
     //res.setHeader('Access-Control-Allow-Origin', 'http://localhost:8080')
