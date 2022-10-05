@@ -3,6 +3,7 @@ import fs from 'fs';
 import fetch from 'node-fetch'
 
 async function getMediaKey(roomId) {
+console.log("Getting media key now for ", roomId)
     let variables = {
         "id": roomId,
         "isMetatagsQuery": false,
@@ -44,7 +45,9 @@ async function getMediaKey(roomId) {
 
         "credentials": "include"
     });
+    console.log("Request: ", request)
     let data = await request.json()
+    console.log("data: ", data)
     return data.data.audioSpace.metadata.media_key;
 }
 
@@ -78,10 +81,12 @@ async function accessChatPublic(mediaKey) {
 
 export async function watchRoom(roomId) {
     let mediaKey = await getMediaKey(roomId);
+    console.log("mediaKey: ", mediaKey)
     let stats;
     try {
-        stats = fs.statSync("'data/' + roomId + '.json'")
+        stats = fs.statSync('data/' + roomId + '.json')
     } catch (ex) {
+        console.log(ex)
     }
     let file = fs.openSync('data/' + roomId + '.json', 'w+');
     let position = 3;
@@ -93,6 +98,7 @@ export async function watchRoom(roomId) {
     var w = new WebSocket('wss://prod-chatman-ancillary-eu-central-1.pscp.tv/chatapi/v1/chatnow');
     w.onopen = async () => {
         let access_token = (await accessChatPublic(mediaKey)).access_token
+        console.log("access_token: ", access_token)
         let m1 = {
             "payload": JSON.stringify({
                 access_token: access_token
@@ -135,12 +141,14 @@ function getRoomPeople(raw) {
 
 export async function getRoomData(roomId) {
     try {
+        console.log("getting info for ", roomId)
         let file = await fs.promises.open('data/' + roomId + '.json', 'r');
         let rawBuffer = await fs.promises.readFile(file);
         let raw = JSON.parse(rawBuffer.toString('utf8'))
         let roomPeople = getRoomPeople(raw)
         return {raw, roomPeople}
     }catch (e) {
+    console.log(e)
         return {raw:[], roomPeople:[]}
     }
 }
